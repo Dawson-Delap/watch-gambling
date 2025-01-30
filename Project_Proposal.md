@@ -4,7 +4,7 @@
 
 ## Client: Dawson Delap
 
-## Date: 1/27/25
+## Date: 1/28/25
 
 1. App idea
     - An app combines other gambling games that I've made

@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    @AppStorage("moneywatch", store: UserDefaults(suiteName: "group.Dawson.gamble"))
-    private var money: Int = 0
+    @AppStorage("money") private var moneySaved = 0
+    @State public var money = 0 {
+        didSet {
+            moneySaved = money
+        }
+    }
     @State private var rotationAngle = 0.0
     @State private var currentColor: Color = .red
     private let colors: [Color] = [.red, .blue, .green, .purple, .orange]
@@ -44,7 +48,7 @@ struct ContentView: View {
                     Spacer()
                     VStack {
                         Text("Current Money:")
-                        Text("$\(money)")
+                        Text("$\(moneySaved)")
                     }.font(Font.system(size: 20))
                         .foregroundColor(Color.white)
                         .frame(width: 200, height: 80)
@@ -52,7 +56,7 @@ struct ContentView: View {
                         .cornerRadius(10)
                     NavigationLink(destination: slotsView(
                         money: $money,
-                        moneySaved: $money
+                        moneySaved: $moneySaved
                     )) {
                         HStack{
                             Text("Slots").font(Font.system(size: 40))
@@ -68,7 +72,7 @@ struct ContentView: View {
                     }
                     NavigationLink(destination: WheelView(
                         money: $money,
-                        moneySaved: $money
+                        moneySaved: $moneySaved
                     )) {
                         HStack{
                             Text("Wheel")
@@ -90,7 +94,7 @@ struct ContentView: View {
                     }
                     NavigationLink(destination: doubleView(
                         money: $money,
-                        moneySaved: $money
+                        moneySaved: $moneySaved
                     )) {
                         HStack{
                             Text("Double")
