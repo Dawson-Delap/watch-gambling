@@ -109,6 +109,23 @@ struct ContentView: View {
                             .background(Color(white: 0.3))
                             .cornerRadius(10)
                     }
+                    NavigationLink(destination: blackjackView(
+                        money: $money,
+                        moneySaved: $moneySaved
+                    )) {
+                        HStack{
+                            Text("Jack")
+                                .font(Font.system(size: 35))
+                                .foregroundColor(Color.white)
+                                .padding(.horizontal)
+                            Image("jackpic")
+                                .resizable() // Makes the image resizable
+                                .scaledToFit() // Ensures it fits properly
+                                .frame(width: 50, height: 50)
+                        }.frame(width: 200, height: 100)
+                            .background(Color(white: 0.3))
+                            .cornerRadius(10)
+                    }
                     Spacer()
                 }.padding()
                     .onAppear {
@@ -708,6 +725,343 @@ struct doubleView: View {
             
         }
     }
+}
+
+//MARK:  BlackJack
+//Created by Dawson Delap on 1/31/25.
+
+import SwiftUI
+import Foundation
+// MARK: Cards
+var cards = [
+        "clubs_2", "clubs_3", "clubs_4", "clubs_5", "clubs_6", "clubs_7", "clubs_8", "clubs_9", "clubs_10",
+        "clubs_jack", "clubs_queen", "clubs_king", "clubs_ace", // 0-12
+        "diamonds_2", "diamonds_3", "diamonds_4", "diamonds_5", "diamonds_6", "diamonds_7", "diamonds_8", "diamonds_9", "diamonds_10",
+        "diamonds_jack", "diamonds_queen", "diamonds_king", "diamonds_ace", // 13-25
+        "hearts_2", "hearts_3", "hearts_4", "hearts_5", "hearts_6", "hearts_7", "hearts_8", "hearts_9", "hearts_10",
+        "hearts_jack", "hearts_queen", "hearts_king", "hearts_ace", // 26-38
+        "spades_2", "spades_3", "spades_4", "spades_5", "spades_6", "spades_7", "spades_8", "spades_9", "spades_10",
+        "spades_jack",  "spades_queen", "spades_king", "spades_ace" // 39-51
+    ]
+// MARK: card values
+var cardValues: [String: Int] = [
+    "clubs_2": 2, "clubs_3": 3, "clubs_4": 4, "clubs_5": 5, "clubs_6": 6, "clubs_7": 7, "clubs_8": 8, "clubs_9": 9, "clubs_10": 10,
+    "clubs_jack": 10, "clubs_queen": 10, "clubs_king": 10, "clubs_ace": 11,
+    
+    "diamonds_2": 2, "diamonds_3": 3, "diamonds_4": 4, "diamonds_5": 5, "diamonds_6": 6, "diamonds_7": 7, "diamonds_8": 8, "diamonds_9": 9, "diamonds_10": 10,
+    "diamonds_jack": 10, "diamonds_queen": 10, "diamonds_king": 10, "diamonds_ace": 11,
+    
+    "hearts_2": 2, "hearts_3": 3, "hearts_4": 4, "hearts_5": 5, "hearts_6": 6, "hearts_7": 7, "hearts_8": 8, "hearts_9": 9, "hearts_10": 10,
+    "hearts_jack": 10, "hearts_queen": 10, "hearts_king": 10, "hearts_ace": 11,
+    
+    "spades_2": 2, "spades_3": 3, "spades_4": 4, "spades_5": 5, "spades_6": 6, "spades_7": 7, "spades_8": 8, "spades_9": 9, "spades_10": 10,
+    "spades_jack": 10, "spades_queen": 10, "spades_king": 10, "spades_ace": 11
+]
+// max 51
+struct blackjackView: View {
+    @State private var playerCards: [String] = []
+    @State private var dealerCards: [String] = []
+    @State private var playerscore: Int = 0
+    @State private var dealerscore: Int = 0
+    @State private var win: String = ""
+    @State private var gameover: Bool = false
+    @State private var isFlipped: Bool = false
+    @State private var flipcard: String = "back"
+    @State private var disable: Bool = false
+    @Binding var money: Int
+    @Binding var moneySaved: Int
+    func hitAction() {
+        if let newCard = cards.randomElement() {
+            playerCards.append(newCard) // Adds a new card to the player's hand
+            if let prindex = cards.firstIndex(of: newCard) {
+                cards.remove(at: prindex)
+            }
+        }
+    }
+    func standAction() {
+        if !isFlipped{
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                if let newCard = cards.randomElement() {
+                    flipcard = newCard // Adds a new card to the player's hand
+                    if let prindex = cards.firstIndex(of: newCard) {
+                        cards.remove(at: prindex)
+                    }
+                    if newCard.contains("ace") && dealerscore + 11 > 22{
+                        dealerscore += 1
+                    }else{
+                        dealerscore += cardValues[newCard] ?? 0
+                    }
+                }
+            }
+            
+            withAnimation {
+                isFlipped.toggle()
+            }
+        }
+        if dealerscore <= playerscore{
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation{
+                    if let newCard = cards.randomElement() {
+                        dealerCards.append(newCard) // Adds a new card to the player's hand
+                        if let drindex = cards.firstIndex(of: newCard) {
+                            cards.remove(at: drindex)
+                        }
+                        if newCard.contains("ace") && dealerscore + 11 > 22{
+                            dealerscore += 1
+                        }else{
+                            dealerscore += cardValues[newCard] ?? 0
+                        }
+                    }
+                }
+                standAction()
+            }
+        }else if dealerscore > playerscore{
+            standcheck()
+        }
+    }
+    func hitcheck(){
+        if dealerscore == 21{
+            win = "Dealer Wins -$1000"
+            money -= 1000
+            gameover = true
+        }else if playerscore == 21{
+            win = "Player Wins +$1000"
+            money += 1000
+            gameover = true
+        }else if dealerscore > 21{
+            win = "Player Wins +$1000"
+            money += 1000
+            gameover = true
+        }else if playerscore > 21{
+            win = "Dealer Wins -$1000"
+            money -= 1000
+            gameover = true
+        }
+    }
+    func standcheck(){
+        if dealerscore < 21 && playerscore < 21 && playerscore > dealerscore{
+            win = "Player Wins +$1000"
+            money += 1000
+            gameover = true
+        }else if dealerscore < 21 && playerscore < 21 && playerscore < dealerscore{
+            win = "Dealer Wins -$1000"
+            money -= 1000
+            gameover = true
+        }else if dealerscore > 21{
+            win = "Player Wins +$1000"
+            money += 1000
+            gameover = true
+        }else if playerscore > 21{
+            win = "Dealer Wins -$1000"
+            money -= 1000
+            gameover = true
+        }else if dealerscore == 21{
+            win = "Dealer Wins -$1000"
+            money -= 1000
+            gameover = true
+        }else if playerscore == 21{
+            win = "Player Wins +$1000"
+            money += 1000
+            gameover = true
+        }
+    }
+    //MARK: Black Jack Body
+    var body: some View {
+        ZStack{
+            ZStack{
+                LinearGradient(
+                    gradient: Gradient(colors: [Color(red: 0, green: 0.4, blue: 0), Color(red: 0, green: 0.4, blue: 0), ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                ).onAppear(){
+                    withAnimation{
+                        if let newCard = cards.randomElement() {
+                            playerCards.append(newCard) // Adds a new card to the player's hand
+                            if let prindex = cards.firstIndex(of: newCard) {
+                                cards.remove(at: prindex)
+                            }
+                        }
+                        if let newCard = cards.randomElement() {
+                            playerCards.append(newCard) // Adds a new card to the player's hand
+                            if let prindex = cards.firstIndex(of: newCard) {
+                                cards.remove(at: prindex)
+                            }
+                        }
+                        if let newCard = cards.randomElement() {
+                            dealerCards.append(newCard) // Adds a new card to the player's hand
+                            if let drindex = cards.firstIndex(of: newCard) {
+                                cards.remove(at: drindex)
+                            }
+                        }
+                    }
+                }
+                .ignoresSafeArea()
+                
+                VStack{
+                    // dealer card 1
+                    ZStack{
+                        Image(flipcard)
+                           .resizable()
+                           .frame(width: 175, height: 250)
+                           .offset(x: CGFloat(-1) * 25 - 12.5, y: 0) // Adjusted offset
+                           .rotation3DEffect(.degrees(isFlipped ? 360 : 0), axis: (x: 0, y: 1, z: 0))
+                           .animation(.easeInOut(duration: 0.6), value: isFlipped)
+                        ForEach(Array(dealerCards.enumerated()), id: \.element) { index, card in
+                            Image(card)
+                                .resizable()
+                                .frame(width: 175, height: 250)
+                                .offset(x: CGFloat(index) * 25 - CGFloat(dealerCards.count - 1) * 12.5, y: 0)
+                                .transition(index == dealerCards.count - 1 ? .move(edge: .trailing) : .identity) // Only new card slides in
+                                .animation(.easeInOut(duration: 0.3), value: dealerCards) // Animate card updates
+                                .onAppear {
+                                    if !isFlipped{
+                                        if card.contains("ace") && dealerscore + 11 > 22{
+                                            dealerscore += 1
+                                        }else{
+                                            dealerscore += cardValues[card] ?? 0
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                    Text("Dealer Score: \(dealerscore)")
+                        .font(Font.system(size: 27))
+                        .offset(x: 0, y: 3)
+                    Spacer()
+                    
+                    ZStack {
+                        Text("$\(money)")
+                            .font(Font.system(size: 27))
+                            .offset(x: 0, y: -200)
+                        Text("Your Score: \(playerscore)")
+                            .font(Font.system(size: 27))
+                            .offset(x: 0, y: -160)
+                        
+                        ForEach(Array(playerCards.enumerated()), id: \.element) { index, card in
+                            Image(card)
+                                .resizable()
+                                .frame(width: 175, height: 250)
+                                .offset(x: CGFloat(index) * 25 - CGFloat(playerCards.count - 1) * 12.5, y: 0) // Shifts older cards back
+                                .transition(index == playerCards.count - 1 ? .move(edge: .trailing) : .identity) // Only new card slides in
+                                .animation(.easeInOut(duration: 0.3), value: playerCards) // Animate card updates
+                                .onAppear {
+                                    if card.contains("ace") && playerscore + 11 > 21{
+                                        playerscore += 1
+                                    }else{
+                                        playerscore += cardValues[card] ?? 0
+                                    }
+                                    hitcheck()
+                                }
+                        }
+                    }
+                    HStack{
+                        Button(action: {
+                            disable = true
+                            withAnimation{
+                                hitAction()
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                disable = false
+                            }
+                        }) {
+                            Text("Hit")
+                                .font(Font.system(size: 27))
+                                .foregroundColor(Color.white)
+                                .frame(width: 175, height: 60)
+                                .background(Color(white: 0.3))
+                                .cornerRadius(15)
+                                
+                        }.disabled(disable)
+                        Button(action: {
+                            disable = true
+                            withAnimation{
+                                standAction()
+                                
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                disable = false
+                            }
+                        }) {
+                            Text("Stand")
+                                .font(Font.system(size: 27))
+                                .foregroundColor(Color.white)
+                                .frame(width: 175, height: 60)
+                                .background(Color(white: 0.3))
+                                .cornerRadius(15)
+                                
+                        }.disabled(disable)
+                    }
+                }
+                if gameover {
+                    Color.black
+                        .opacity(0.4) // Adjust opacity to control the darkness
+                        .blur(radius: 10) // Blur effect
+                        .edgesIgnoringSafeArea(.all)
+                    
+                    // Centered Text
+                    Text(win)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .opacity(1.0)
+                        .offset(y: -75)
+                    Button(action: {
+                        playerCards = []
+                        dealerCards = []
+                        playerscore = 0
+                        dealerscore = 0
+                        win = ""
+                        gameover = false
+                        isFlipped = false
+                        flipcard = "back"
+                        cards = [
+                                "clubs_2", "clubs_3", "clubs_4", "clubs_5", "clubs_6", "clubs_7", "clubs_8", "clubs_9", "clubs_10",
+                                "clubs_jack", "clubs_queen", "clubs_king", "clubs_ace", // 0-12
+                                "diamonds_2", "diamonds_3", "diamonds_4", "diamonds_5", "diamonds_6", "diamonds_7", "diamonds_8", "diamonds_9", "diamonds_10",
+                                "diamonds_jack", "diamonds_queen", "diamonds_king", "diamonds_ace", // 13-25
+                                "hearts_2", "hearts_3", "hearts_4", "hearts_5", "hearts_6", "hearts_7", "hearts_8", "hearts_9", "hearts_10",
+                                "hearts_jack", "hearts_queen", "hearts_king", "hearts_ace", // 26-38
+                                "spades_2", "spades_3", "spades_4", "spades_5", "spades_6", "spades_7", "spades_8", "spades_9", "spades_10",
+                                "spades_jack",  "spades_queen", "spades_king", "spades_ace" // 39-51
+                            ]
+                        if let newCard = cards.randomElement() {
+                            playerCards.append(newCard) // Adds a new card to the player's hand
+                            if let prindex = cards.firstIndex(of: newCard) {
+                                cards.remove(at: prindex)
+                            }
+                        }
+                        if let newCard = cards.randomElement() {
+                            playerCards.append(newCard) // Adds a new card to the player's hand
+                            if let prindex = cards.firstIndex(of: newCard) {
+                                cards.remove(at: prindex)
+                            }
+                        }
+                        if let newCard = cards.randomElement() {
+                            dealerCards.append(newCard) // Adds a new card to the player's hand
+                            if let drindex = cards.firstIndex(of: newCard) {
+                                cards.remove(at: drindex)
+                            }
+                        }
+                    }) {
+                        Text("Reset")
+                            .font(Font.system(size: 27))
+                            .foregroundColor(Color.white)
+                            .frame(width: 175, height: 60)
+                            .background(Color(white: 0.3))
+                            .cornerRadius(15)
+                            .opacity(50)
+                            .offset(y: -25)
+                    }
+                }
+            }
+        }.onAppear {
+            moneySaved = money
+        }
+    }
+}
+
+#Preview {
+    ContentView()
 }
 
 #Preview {

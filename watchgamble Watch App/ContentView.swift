@@ -35,7 +35,7 @@ struct ContentView: View {
                     Text("Gambling")
                         .font(Font.system(size: 20))
                         .foregroundColor(Color.white)
-                        .frame(width: 150, height: 40)
+                        .frame(width: 140, height: 35)
                         .background(currentColor)
                         .cornerRadius(10)
                         .onAppear {
@@ -47,7 +47,7 @@ struct ContentView: View {
                         Text("$\(moneywatchSaved)")
                     }.font(Font.system(size: 15))
                         .foregroundColor(Color.white)
-                        .frame(width: 100, height: 25)
+                        .frame(width: 100, height: 20)
                         .background(Color(white: 0.24))
                         .cornerRadius(10)
                     NavigationLink(destination: slotsView(
@@ -61,7 +61,7 @@ struct ContentView: View {
                                 .scaledToFit() // Ensures it fits properly
                                 .frame(width: 25, height: 25)
                         }
-                            .frame(width: 100, height: 40)
+                            .frame(width: 100, height: 35)
                             .background(Color(white: 0.3))
                             .cornerRadius(10)
                     }.buttonStyle(PlainButtonStyle())
@@ -82,7 +82,7 @@ struct ContentView: View {
                                         rotationAngle = 360
                                     }
                                 }
-                        }.frame(width: 100, height: 40)
+                        }.frame(width: 100, height: 35)
                             .background(Color(white: 0.3))
                             .cornerRadius(10)
                     }.buttonStyle(PlainButtonStyle())
@@ -98,7 +98,7 @@ struct ContentView: View {
                                 .resizable() // Makes the image resizable
                                 .scaledToFit() // Ensures it fits properly
                                 .frame(width: 25, height: 25)
-                        }.frame(width: 100, height: 40)
+                        }.frame(width: 100, height: 35)
                             .background(Color(white: 0.3))
                             .cornerRadius(10)
                     }.buttonStyle(PlainButtonStyle())
@@ -317,7 +317,7 @@ struct slotsView: View {
                             Image(systemName: images[slot1img])
                                 .font(Font.system(size: 35))
                                 .foregroundColor(.white)
-                                .frame(width: 60, height: 100)
+                                .frame(width: 50, height: 90)
                                 .id(slot1img) // Ensures unique identity
                                 .transition(.moveAndOffset(offsetY: -50)) // Apply transition
                         }.background(colors[slot1img])
@@ -326,7 +326,7 @@ struct slotsView: View {
                             Image(systemName: images[slot2img])
                                 .font(Font.system(size: 35))
                                 .foregroundColor(Color.white)
-                                .frame(width: 60, height: 100)
+                                .frame(width: 50, height: 90)
                                 .id(slot2img) // Ensures unique identity
                                 .transition(.moveAndOffset(offsetY: -50))
                         }.background(colors[slot2img])
@@ -335,7 +335,7 @@ struct slotsView: View {
                             Image(systemName: images[slot3img])
                                 .font(Font.system(size: 35))
                                 .foregroundColor(Color.white)
-                                .frame(width: 60, height: 100)
+                                .frame(width: 50, height: 90)
                                 .id(slot3img) // Ensures unique identity
                                 .transition(.moveAndOffset(offsetY: -50))
                         }.background(colors[slot3img])
@@ -353,7 +353,7 @@ struct slotsView: View {
                                     .font(Font.system(size: 10))
                                     .foregroundColor(.white)
                             }
-                            .frame(width: 60, height: 40)
+                            .frame(width: 50, height: 40)
                             .background(Color(white: 0.3))
                             .cornerRadius(10)
                             Button(action: {
@@ -363,7 +363,7 @@ struct slotsView: View {
                                 }
                             }) {
                                 Label("Spin", systemImage: "arrow.triangle.2.circlepath")
-                                    .font(Font.system(size: 10))
+                                    .font(Font.system(size: 15))
                                     .foregroundColor(Color.white)
                                     .frame(width: 60, height: 40)
                                     .background(Color.blue)
@@ -377,7 +377,7 @@ struct slotsView: View {
                                 Text("Gains")
                                     .font(Font.system(size: 10))
                                     .foregroundColor(Color.white)
-                                    .frame(width: 60, height: 40)
+                                    .frame(width: 50, height: 40)
                                     .background(isBlinking ? Color(white: 0.5) : Color(white: 0.3))
                                     .cornerRadius(10)
                             }.buttonStyle(PlainButtonStyle())
@@ -450,10 +450,16 @@ struct WheelView: View {
             )
             .ignoresSafeArea()
             VStack {
+                Text("$\(money)").font(Font.system(size: 15))
+                    .foregroundColor(Color.white)
+                    .frame(width: 120, height: 30)
+                    .background(Color(white: 0.3))
+                    .cornerRadius(10)
+                    .id(money)
                 Image("wheel")
                     .resizable() // Makes the image resizable
                     .scaledToFit() // Ensures it fits properly
-                    .frame(width: 125, height: 125)
+                    .frame(width: 120, height: 120)
                     .rotationEffect(.degrees(angle))
                     .animation(.easeInOut(duration: 2), value: angle)
                     .onTapGesture {withAnimation {
@@ -551,17 +557,7 @@ struct WheelView: View {
                     .onDisappear(){
                         
                     }
-                Text("$\(money)").font(Font.system(size: 15))
-                    .foregroundColor(Color.white)
-                    .frame(width: 60, height: 30)
-                    .background(Color(white: 0.3))
-                    .cornerRadius(10)
-                    .id(money)
-                Text("\(gained)")
-                    .foregroundStyle(gaincolor)
-                    .id(landed)
-                    .transition(.WheelmoveAndOffset(offsetY: 1).combined(with: .opacity))
-                    .animation(.easeInOut(duration: 3), value: landed)
+                
             }
             .padding()
         }
@@ -597,17 +593,17 @@ struct doubleView: View {
             .ignoresSafeArea()
             VStack {
                 Text("$\(money)")
-                    .frame(width: 60, height: 30)
+                    .frame(width: 120, height: 30)
                     .background(Color(white: 0.3))
-                    .cornerRadius(15)
+                    .cornerRadius(10)
                     .foregroundStyle(Color.white)
                 Spacer()
                 Text("\(number)")
                     .font(Font.system(size: 60))
                     .foregroundColor(Color.white)
-                    .frame(width: 125, height: 125)
+                    .frame(width: 115, height: 115)
                     .background(Color.red)
-                    .cornerRadius(30)
+                    .cornerRadius(15)
                     .font(.largeTitle)
                     .modifier(Shake(animatableData: CGFloat(attempts)))
                 HStack{
@@ -631,21 +627,24 @@ struct doubleView: View {
                         Text("Double")
                             .font(Font.system(size: 15))
                             .foregroundColor(Color.white)
-                            .frame(width: 60, height: 40)
+                            .frame(width: 60, height: 35)
                             .background(Color(white: 0.3))
-                            .cornerRadius(15)
+                            .cornerRadius(10)
                     }.buttonStyle(PlainButtonStyle())
                     Button(action: {
                         money += number
                         number = 0
                         
                     }) {
-                        Text("Cash\n Out")
+                        VStack{
+                            Text("Cash")
+                            Text("Out")
+                        }
                             .font(Font.system(size: 15))
                             .foregroundColor(Color.white)
-                            .frame(width: 60, height: 40)
+                            .frame(width: 60, height: 35)
                             .background(Color(white: 0.3))
-                            .cornerRadius(15)
+                            .cornerRadius(10)
                     }.buttonStyle(PlainButtonStyle())
                 }
                 Spacer()
