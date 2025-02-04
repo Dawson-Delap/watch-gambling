@@ -24,6 +24,7 @@
     - There is slots
     - There is a wheel of fortune
     - There is double or nothing
+    - There is blackjack
     - The app works on both iphone and apple watch
 
 5. Completion Requirements
