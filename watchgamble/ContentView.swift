@@ -127,6 +127,29 @@ struct ContentView: View {
                             .cornerRadius(10)
                     }
                     Spacer()
+                    NavigationLink(destination: RoulView(
+                        money: $money,
+                        moneySaved: $moneySaved
+                    )) {
+                        HStack{
+                            Text("Roul")
+                                .font(Font.system(size: 35))
+                                .foregroundColor(Color.white)
+                                .padding(.horizontal)
+                            Image("RouletteWheel")
+                                .resizable() // Makes the image resizable
+                                .scaledToFit() // Ensures it fits properly
+                                .frame(width: 60, height: 60)
+                                .rotationEffect(.degrees(rotationAngle))
+                                .onAppear {
+                                    withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
+                                        rotationAngle = 360
+                                    }
+                                }
+                        }.frame(width: 200, height: 100)
+                            .background(Color(white: 0.3))
+                            .cornerRadius(10)
+                    }
                 }.padding()
                     .onAppear {
                         
@@ -798,6 +821,7 @@ struct blackjackView: View {
                 isFlipped.toggle()
             }
         }
+        
         if dealerscore <= playerscore{
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation{
@@ -812,10 +836,17 @@ struct blackjackView: View {
                             dealerscore += cardValues[newCard] ?? 0
                         }
                     }
+                    if dealerscore < 21 && playerscore < 21 && playerscore < dealerscore{
+                        win = "Dealer Wins -$1000"
+                        money -= 1000
+                        gameover = true
+                    }else{
+                        standAction()
+                    }
                 }
-                standAction()
+                
             }
-        }else if dealerscore > playerscore{
+        }else{
             standcheck()
         }
     }
@@ -1052,6 +1083,14 @@ struct blackjackView: View {
                             .opacity(50)
                             .offset(y: -25)
                     }
+                    Text("D:\(dealerscore)          P:\(playerscore)")
+                        .font(Font.system(size: 27))
+                        .foregroundColor(Color.white)
+                        .frame(width: 175, height: 60)
+                        .background(Color(white: 0.3))
+                        .cornerRadius(15)
+                        .opacity(50)
+                        .offset(y: 55)
                 }
             }
         }.onAppear {
@@ -1059,9 +1098,731 @@ struct blackjackView: View {
         }
     }
 }
+//
+//  ContentView.swift
+//MARK:  roulette
+//
+//  Created by Dawson Delap on 2/6/25.
+//
 
-#Preview {
-    ContentView()
+import SwiftUI
+import Foundation
+struct RoulView: View {
+    var redOrBlack: [Int: String] = [1:"red", 2:"black", 3:"red", 4:"black", 5:"red", 6:"black", 7:"red", 8:"black", 9:"red", 10:"black", 11:"black", 12:"red", 13:"black", 14:"red", 15:"black", 16:"red", 17:"black", 18:"red", 19:"red", 20:"black", 21:"red", 22:"black", 23:"red", 24:"black", 25:"red", 26:"black", 27:"red", 28:"black", 29:"black", 30:"red", 31:"black", 32:"red", 33:"black", 34:"red", 35:"black", 36:"red"]
+    
+    @State var rotationAngle = 0.0
+    @State var currentnum = 0
+    
+    @State var angle = 0.0
+    @State var ballangle = 0.0
+    @State var roll = false
+    
+    @State var there = 0
+    @State var bet = 100
+    
+    @State var landcolor: Color = .blue
+    
+    @Binding var money: Int
+    @Binding var moneySaved: Int
+    func rotate(){
+        withAnimation{
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                self.rotationAngle += 0.3
+                rotationAngle = rotationAngle.truncatingRemainder(dividingBy: 360)
+                rotate()
+            }
+        }
+        
+    }
+    // add to get ball position relative to wheel
+    func rollball(){
+        withAnimation{
+            if roll{
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    self.angle -= 1
+                    ballangle = angle.truncatingRemainder(dividingBy: 360)
+                    rollball()
+                }
+            }else{
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    ballangle = rotationAngle + angle
+                    rollball()
+                }
+            }
+        }
+    }
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [Color(white: 0.2), Color(white: 0.2)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            VStack{
+                Spacer()
+                ZStack {
+                    Image("RouletteWheel")
+                        .resizable() // Makes the image resizable
+                        .scaledToFit() // Ensures it fits properly
+                        .frame(width: 350, height: 350)
+                        .rotationEffect(.degrees(rotationAngle))
+                        .onAppear(){
+                            rotate()
+                        }
+                    Image("ball")
+                        .resizable() // Makes the image resizable
+                        .scaledToFit() // Ensures it fits properly
+                        .frame(width: 360, height: 360)
+                        .rotationEffect(.degrees(ballangle))
+                        .onAppear(){
+                            rollball()
+                        }
+                }
+                Spacer()
+                HStack{
+                    //column 1
+                    VStack{
+                        Button(action: {
+                            bet = 1
+                        }) {
+                            Text("1")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 1 ? true : false)
+                        Button(action: {
+                            bet = 2
+                        }) {
+                            Text("2")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 2 ? true : false)
+                        Button(action: {
+                            bet = 3
+                        }) {
+                            Text("3")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 3 ? true : false)
+                        Button(action: {
+                            bet = 4
+                        }) {
+                            Text("4")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 4 ? true : false)
+                        Button(action: {
+                            bet = 5
+                        }) {
+                            Text("5")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 5 ? true : false)
+                    }
+                    //column 2
+                    VStack{
+                        Button(action: {
+                            bet = 6
+                        }) {
+                            Text("6")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 6 ? true : false)
+                        Button(action: {
+                            bet = 7
+                        }) {
+                            Text("7")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 7 ? true : false)
+                        Button(action: {
+                            bet = 8
+                        }) {
+                            Text("8")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 8 ? true : false)
+                        Button(action: {
+                            bet = 9
+                        }) {
+                            Text("9")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 9 ? true : false)
+                        Button(action: {
+                            bet = 10
+                        }) {
+                            Text("10")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 10 ? true : false)
+                    }
+                    //column 3
+                    VStack{
+                        Button(action: {
+                            bet = 11
+                        }) {
+                            Text("11")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 11 ? true : false)
+                        Button(action: {
+                            bet = 12
+                        }) {
+                            Text("12")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 12 ? true : false)
+                        Button(action: {
+                            bet = 13
+                        }) {
+                            Text("13")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 13 ? true : false)
+                        Button(action: {
+                            bet = 14
+                        }) {
+                            Text("14")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 14 ? true : false)
+                        Button(action: {
+                            bet = 15
+                        }) {
+                            Text("15")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 15 ? true : false)
+                    }
+                    //column 4
+                    VStack{
+                        Button(action: {
+                            bet = 16
+                        }) {
+                            Text("16")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 16 ? true : false)
+                        Button(action: {
+                            bet = 17
+                        }) {
+                            Text("17")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 17 ? true : false)
+                        Button(action: {
+                            bet = 18
+                        }) {
+                            Text("18")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 18 ? true : false)
+                        Button(action: {
+                            bet = 19
+                        }) {
+                            Text("19")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 19 ? true : false)
+                        Button(action: {
+                            bet = 20
+                        }) {
+                            Text("20")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 20 ? true : false)
+                    }
+                    //column 5
+                    VStack{
+                        Button(action: {
+                            bet = 21
+                        }) {
+                            Text("21")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 21 ? true : false)
+                        Button(action: {
+                            bet = 22
+                        }) {
+                            Text("22")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 22 ? true : false)
+                        Button(action: {
+                            bet = 23
+                        }) {
+                            Text("23")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 23 ? true : false)
+                        Button(action: {
+                            bet = 24
+                        }) {
+                            Text("24")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 24 ? true : false)
+                        Button(action: {
+                            bet = 25
+                        }) {
+                            Text("25")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 25 ? true : false)
+                    }
+                    //column 6
+                    VStack{
+                        Button(action: {
+                            bet = 26
+                        }) {
+                            Text("26")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 26 ? true : false)
+                        Button(action: {
+                            bet = 27
+                        }) {
+                            Text("27")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 27 ? true : false)
+                        Button(action: {
+                            bet = 28
+                        }) {
+                            Text("28")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 28 ? true : false)
+                        Button(action: {
+                            bet = 29
+                        }) {
+                            Text("29")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 29 ? true : false)
+                        Button(action: {
+                            bet = 30
+                        }) {
+                            Text("30")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 30 ? true : false)
+                    }
+                    //column 7
+                    VStack{
+                        Button(action: {
+                            bet = 31
+                        }) {
+                            Text("31")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 31 ? true : false)
+                        Button(action: {
+                            bet = 32
+                        }) {
+                            Text("32")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 32 ? true : false)
+                        Button(action: {
+                            bet = 33
+                        }) {
+                            Text("33")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 33 ? true : false)
+                        Button(action: {
+                            bet = 34
+                        }) {
+                            Text("34")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 34 ? true : false)
+                        Button(action: {
+                            bet = 35
+                        }) {
+                            Text("35")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.black)
+                                .cornerRadius(10)
+                        }.disabled(bet == 35 ? true : false)
+                    }
+                    //column 8
+                    VStack{
+                        Button(action: {
+                            bet = 36
+                        }) {
+                            Text("36")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }.disabled(bet == 36 ? true : false)
+                        Button(action: {
+                            bet = 0
+                        }) {
+                            Text("0")
+                                .font(Font.system(size: 20))
+                                .foregroundColor(Color.white)
+                                .frame(width: 40, height: 40)
+                                .background(Color.green)
+                                .cornerRadius(10)
+                        }.disabled(bet == 0 ? true : false)
+                    }
+                }
+                HStack{
+                    Button(action: {
+                        bet = -1
+                    }) {
+                        Text("Red")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 55, height: 40)
+                            .background(Color.red)
+                            .cornerRadius(10)
+                    }.disabled(bet == -1 ? true : false)
+                    Button(action: {
+                        bet = -2
+                    }) {
+                        Text("Black")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 55, height: 40)
+                            .background(Color.black)
+                            .cornerRadius(10)
+                    }.disabled(bet == -2 ? true : false)
+                    Button(action: {
+                        bet = -3
+                    }) {
+                        Text("Even")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 55, height: 40)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }.disabled(bet == -3 ? true : false)
+                    Button(action: {
+                        bet = -4
+                    }) {
+                        Text("Odd")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 55, height: 40)
+                            .background(Color.green)
+                            .cornerRadius(10)
+                    }.disabled(bet == -4 ? true : false)
+                    Button(action: {
+                        bet = -5
+                    }) {
+                        Text("1 Half")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 55, height: 40)
+                            .background(Color.purple)
+                            .cornerRadius(10)
+                    }.disabled(bet == -5 ? true : false)
+                    Button(action: {
+                        bet = -6
+                    }) {
+                        Text("2 Half")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 55, height: 40)
+                            .background(Color.purple)
+                            .cornerRadius(10)
+                    }.disabled(bet == -6 ? true : false)
+                }
+                HStack{
+                    
+                    Button(action: {
+                        bet = -7
+                    }) {
+                        Text("1 Third")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 80, height: 40)
+                            .background(Color.cyan)
+                            .cornerRadius(10)
+                    }.disabled(bet == -7 ? true : false)
+                    Button(action: {
+                        bet = -8
+                    }) {
+                        Text("2 Third")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 80, height: 40)
+                            .background(Color.cyan)
+                            .cornerRadius(10)
+                    }.disabled(bet == -8 ? true : false)
+                    Button(action: {
+                        bet = -9
+                    }) {
+                        Text("3 Third")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 80, height: 40)
+                            .background(Color.cyan)
+                            .cornerRadius(10)
+                    }.disabled(bet == -9 ? true : false)
+                }
+                HStack{
+                    Text("\(bet == 100 ? "No bet" : "\(bet)")")
+                    //Text("\(angle.truncatingRemainder(dividingBy: 360)  * -1)")
+                        .font(Font.system(size: 20))
+                        .foregroundColor(Color.white)
+                        .frame(width: 120, height: 60)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                    Button(action: {
+                        money -= 1000
+                        angle = ballangle
+                        roll = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 1...5)) {
+                            roll = false
+                            if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 0 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 9.5 {
+                                there = 1
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 9.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 19 {
+                                there = 13
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 19 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 28.5 {
+                                there = 36
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 28.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 38{
+                                there = 24
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 38 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 47.5 {
+                                there = 3
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 47.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 57 {
+                                there = 15
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 57 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 66.5 {
+                                there = 34
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 66.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 76 {
+                                there = 22
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 76 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 85.5 {
+                                there = 5
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 85.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 95 {
+                                there = 17
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 95 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 104.5 {
+                                there = 32
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 104.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 114 {
+                                there = 20
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 114 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 123.5 {
+                                there = 7
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 123.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 133 {
+                                there = 11
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 133 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 142.5 {
+                                there = 30
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 142.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 152 {
+                                there = 26
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 152 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 161.5 {
+                                there = 9
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 161.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 171 {
+                                there = 28
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 171 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 180.5 {
+                                there = 0
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 180.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 190 {
+                                there = 2
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 190 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 199.5 {
+                                there = 14
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 199.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 209 {
+                                there = 35
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 209 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 218.5 {
+                                there = 23
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 218.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 228 {
+                                there = 4
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 228 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 237.5 {
+                                there = 16
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 237.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 247 {
+                                there = 33
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 247 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 256.5 {
+                                there = 21
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 256.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 266 {
+                                there = 6
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 266 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 275.5 {
+                                there = 18
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 275.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 285 {
+                                there = 31
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 285 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 294.5 {
+                                there = 19
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 294.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 304 {
+                                there = 8
+                            } else if ballangle-rotationAngle * -1 >= 304 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 313.5 {
+                                there = 12
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 313.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 323 {
+                                there = 29
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 323 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 332.5 {
+                                there = 25
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 332.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 342 {
+                                there = 10
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 342 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 351.5 {
+                                there = 27
+                            } else if angle.truncatingRemainder(dividingBy: 360)  * -1 >= 351.5 && angle.truncatingRemainder(dividingBy: 360)  * -1 < 360 {
+                                there = 0
+                            }
+                            if redOrBlack[there] == "red" {
+                                landcolor = .red
+                            }else if redOrBlack[there] == "black" {
+                                landcolor = .black
+                            }else{
+                                landcolor = .green
+                            }
+                            if bet == there {
+                                money += 380000
+                            }else if bet == -1 && redOrBlack[there] == "red" {
+                                money += 19000
+                            }else if bet == -2 && redOrBlack[there] == "black" {
+                                money += 19000
+                            }else if bet == -3 && there % 2 == 0 {
+                                money += 19000
+                            }else if bet == -4 && there % 2 == 1 {
+                                money += 19000
+                            }else if bet == -5 && there <= 18 {
+                                money += 19000
+                            }else if bet == -6 && there >= 18 {
+                                money += 19000
+                            }else if bet == -7 && there <= 12 {
+                                money += 27000
+                            }else if bet == -8 && there >= 12 && there <= 24 {
+                                money += 27000
+                            }else if bet == -9 && there >= 24 {
+                                money += 27000
+                            }
+                            moneySaved = money
+                        }
+                    }) {
+                        Label("Spin", systemImage: "arrow.triangle.2.circlepath")
+                            .font(Font.system(size: 20))
+                            .foregroundColor(Color.white)
+                            .frame(width: 120, height: 60)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }.disabled(bet == 100 ? true : false)
+                    VStack {
+                        Text("Landed:\(there)")
+                            .font(Font.system(size: 15))
+                            .foregroundColor(Color.white)
+                            .frame(width: 120, height: 25)
+                            .background(landcolor)
+                            .cornerRadius(5)
+                        Text("$\(money)")
+                            .font(Font.system(size: 15))
+                            .foregroundColor(Color.white)
+                            .frame(width: 120, height: 25)
+                            .background(Color.blue)
+                            .cornerRadius(5)
+                    }.onAppear(){
+                        money = moneySaved
+                    }
+                    
+                   
+                }
+                .padding()
+            }
+        }
+    }
 }
 
 #Preview {
